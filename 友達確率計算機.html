@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>妖怪ウォッチ ともだち確率計算ツール</title>
+<style>
+    body {
+        font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        background-color: #1e1e24;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background-color: #2b2b36;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    h1 {
+        text-align: center;
+        color: #fff;
+        border-bottom: 2px solid #4a4a5a;
+        padding-bottom: 10px;
+        font-size: 1.5em;
+    }
+    
+    /* グローバルバフ（全体効果） */
+    .global-buffs {
+        background-color: #363644;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 5px solid #ffcc55;
+    }
+    .global-buffs h3 {
+        margin-top: 0;
+        color: #ffdd88;
+    }
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    /* 敵の横並びレイアウト */
+    .enemies-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .enemy-block {
+        flex: 1;
+        background-color: #363644;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 5px solid #5a5a7a;
+        min-width: 250px;
+    }
+    .enemy-block h3 {
+        margin-top: 0;
+        color: #aaccff;
+    }
+    .enemy-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    
+    label {
+        font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    input[type="text"], input[type="number"], select {
+        padding: 6px;
+        border: 1px solid #555;
+        border-radius: 4px;
+        background-color: #1e1e24;
+        color: #fff;
+        box-sizing: border-box;
+    }
+    input[type="text"] { width: 100%; }
+    input[type="number"] { width: 100%; }
+    select { width: 100%; }
+
+    /* スマホ等の狭い画面では縦並びにする */
+    @media (max-width: 768px) {
+        .enemies-container {
+            flex-direction: column;
+        }
+    }
+
+    /* 結果エリア */
+    .result-area {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #1e1e24;
+        border-radius: 8px;
+        border: 1px solid #444;
+    }
+    .result-area h2 {
+        margin-top: 0;
+        color: #ff66aa;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+        font-size: 1.1em;
+    }
+    li {
+        margin-bottom: 8px;
+        padding: 8px;
+        background-color: #2b2b36;
+        border-radius: 4px;
+        border-left: 4px solid #ff66aa;
+    }
+    .error-msg {
+        color: #ff6666;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    /* アコーディオン（仕様詳細） */
+    details {
+        margin-top: 30px;
+        background-color: #363644;
+        border-radius: 8px;
+        padding: 10px 15px;
+        border-left: 5px solid #88aa88;
+    }
+    summary {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #aaddaa;
+        cursor: pointer;
+        outline: none;
+    }
+    .details-content {
+        margin-top: 15px;
+        font-size: 0.95em;
+        line-height: 1.6;
+        color: #ccc;
+    }
+    .details-content h4 {
+        color: #fff;
+        border-bottom: 1px solid #555;
+        padding-bottom: 5px;
+        margin-top: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+        font-size: 0.9em;
+    }
+    th, td {
+        border: 1px solid #555;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #2b2b36;
+        color: #ffdd88;
+    }
+</style>
+</head>
+<body>
+
+<div class="container" id="app-container">
+    <h1>妖怪ウォッチ ともだち確率計算ツール</h1>
+    
+    <p style="text-align: center; font-size: 1.05em; color: #bbb; margin-top: -10px; margin-bottom: 25px;">
+        これはswopis氏が作成したツールを日本語版にしたものです。<br>
+        <a href="https://github.com/swopis/YW-Befriend-Calculator" target="_blank" style="color: #aaccff; text-decoration: underline;">詳細（オリジナル版）はこちら</a>
+    </p>
+
+    <div class="global-buffs">
+        <h3>全体のボーナス効果</h3>
+        <div class="row">
+            <label><input type="checkbox" id="whisp_blue"> 青いさすらい玉 (+10%)</label>
+            <label><input type="checkbox" id="whisp_gold"> 金のさすらい玉 (確定)</label>
+        </div>
+        <div class="row">
+            <label><input type="checkbox" id="pop"> モテモテ魂 / モテモテスキル</label>
+            <label><input type="checkbox" id="unpop"> モテヌススキル</label>
+            <label><input type="checkbox" id="shrine"> おおもり神社のお賽銭バフ (+1%)</label>
+        </div>
+    </div>
+
+    <div class="enemies-container" id="enemies-container">
+        <div class="enemy-block" id="enemy_1">
+            <h3>敵妖怪 1</h3>
+            <div class="enemy-row">
+                <label>妖怪名:</label>
+                <input type="text" id="yk_name_1" list="yks" placeholder="ジバニャン">
+            </div>
+            <div class="enemy-row">
+                <label>現在持っている数:</label>
+                <input type="number" id="yk_count_1" value="0" min="0" max="6">
+            </div>
+            <div class="enemy-row">
+                <label>与える食べ物:</label>
+                <select id="food_tier_1">
+                    <option value="0">食べ物なし</option>
+                    <option value="1">Tier 1 (例：うめおにぎり)</option>
+                    <option value="2">Tier 2 (例：たかなおにぎり)</option>
+                    <option value="3">Tier 3 (例：いくらおにぎり)</option>
+                    <option value="4">Tier 4 (例：あいじょう天むす)</option>
+                </select>
+            </div>
+            <div class="enemy-row">
+                <label><input type="checkbox" id="fav_food_1"> 大好物 (1.5倍)</label>
+                <label><input type="checkbox" id="hat_food_1"> 嫌いな食べ物 (0.4倍)</label>
+                <label><input type="checkbox" id="poke_1"> 戦闘中につつく (+10%)</label>
+            </div>
+        </div>
+
+        <div class="enemy-block" id="enemy_2">
+            <h3>敵妖怪 2</h3>
+            <div class="enemy-row">
+                <label>妖怪名:</label>
+                <input type="text" id="yk_name_2" list="yks" placeholder="空欄で無視">
+            </div>
+            <div class="enemy-row">
+                <label>現在持っている数:</label>
+                <input type="number" id="yk_count_2" value="0" min="0" max="6">
+            </div>
+            <div class="enemy-row">
+                <label>与える食べ物:</label>
+                <select id="food_tier_2">
+                    <option value="0">食べ物なし</option>
+                    <option value="1">Tier 1 (例：うめおにぎり)</option>
+                    <option value="2">Tier 2 (例：たかなおにぎり)</option>
+                    <option value="3">Tier 3 (例：いくらおにぎり)</option>
+                    <option value="4">Tier 4 (例：あいじょう天むす)</option>
+                </select>
+            </div>
+            <div class="enemy-row">
+                <label><input type="checkbox" id="fav_food_2"> 大好物 (1.5倍)</label>
+                <label><input type="checkbox" id="hat_food_2"> 嫌いな食べ物 (0.4倍)</label>
+                <label><input type="checkbox" id="poke_2"> 戦闘中につつく (+10%)</label>
+            </div>
+        </div>
+
+        <div class="enemy-block" id="enemy_3">
+            <h3>敵妖怪 3</h3>
+            <div class="enemy-row">
+                <label>妖怪名:</label>
+                <input type="text" id="yk_name_3" list="yks" placeholder="空欄で無視">
+            </div>
+            <div class="enemy-row">
+                <label>現在持っている数:</label>
+                <input type="number" id="yk_count_3" value="0" min="0" max="6">
+            </div>
+            <div class="enemy-row">
+                <label>与える食べ物:</label>
+                <select id="food_tier_3">
+                    <option value="0">食べ物なし</option>
+                    <option value="1">Tier 1 (例：うめおにぎり)</option>
+                    <option value="2">Tier 2 (例：たかなおにぎり)</option>
+                    <option value="3">Tier 3 (例：いくらおにぎり)</option>
+                    <option value="4">Tier 4 (例：あいじょう天むす)</option>
+                </select>
+            </div>
+            <div class="enemy-row">
+                <label><input type="checkbox" id="fav_food_3"> 大好物 (1.5倍)</label>
+                <label><input type="checkbox" id="hat_food_3"> 嫌いな食べ物 (0.4倍)</label>
+                <label><input type="checkbox" id="poke_3"> 戦闘中につつく (+10%)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-area">
+        <h2>最終結果</h2>
+        <div id="error_msg" class="error-msg">妖怪名を入力すると、自動的に計算結果がここに表示されます。</div>
+        <ul id="result">
+        </ul>
+    </div>
+
+    <details>
+        <summary>詳細な仕様について（タップして開く）</summary>
+        <div class="details-content">
+            <h4>基礎確率 (Base probability)</h4>
+            <p>妖怪がともだちになる確率は、完全にその妖怪の「ともだち確率記述子 (friend rate descriptor)」に依存します。記述子は4バイトで構成されますが、後ろの3バイトのみが使用されます。</p>
+            <p>例として、ジミー (Pandle) の記述子は <code>0x00654331</code> です。各数字は「難易度ID」を表します。現在ジミーを1体も持っていない場合、難易度IDは <strong>1</strong> になります。1体持っている場合は <strong>3</strong>、2体持っている場合も <strong>3</strong>、3体なら <strong>4</strong>…というように続きます。この判定には<strong>現在</strong>持っている数のみが使われます。もし持っているジミーのメダルをすべて「魂」に変換した場合、所持数は0体扱いになります。</p>
+            <p>この難易度IDを使用して、基本確率を決定します。計算式は以下の通りです：<br>
+            <strong>確率 ＝ 1 : 2<sup>(難易度ID + 2)</sup></strong></p>
+            <p>例えば、難易度IDが 1 の場合、基本確率は 1 : 2<sup>3</sup> つまり 1/8 となり、<strong>12.5%</strong> になります。</p>
+
+            <h4>プレイヤーの影響によるボーナス (Player influenced bonuses)</h4>
+            <p>基本確率を計算した後、プレイヤーの行動によるボーナスが加算されます。</p>
+            <ul>
+                <li>食べ物ボーナス</li>
+                <li>戦闘中につつく (10%)</li>
+                <li>モテモテ魂 / モテモテスキル</li>
+                <li>モテヌススキル (マイナス補正)</li>
+                <li>さすらい玉ボーナス (10% または 100%)</li>
+                <li>おおもり神社の賽銭バフ (1%)</li>
+            </ul>
+            <p>※注意：各ボーナスは1回ずつしか加算されず、重複（スタック）することはありません。</p>
+
+            <h4>難易度IDに依存するボーナス一覧</h4>
+            <table>
+                <tr><th>ID</th><th>Food Tier 1</th><th>Food Tier 2</th><th>Food Tier 3</th><th>Food Tier 4</th><th>モテモテ</th><th>モテヌス</th></tr>
+                <tr><td>1</td><td>10%</td><td>15%</td><td>20%</td><td>25%</td><td>10%</td><td>-10%</td></tr>
+                <tr><td>2</td><td>5%</td><td>8%</td><td>11%</td><td>14%</td><td>5%</td><td>-4.5%</td></tr>
+                <tr><td>3</td><td>4%</td><td>6%</td><td>8%</td><td>10%</td><td>4%</td><td>-2%</td></tr>
+                <tr><td>4</td><td>4%</td><td>5%</td><td>6%</td><td>7%</td><td>4%</td><td>-1%</td></tr>
+                <tr><td>5</td><td>3%</td><td>4%</td><td>5%</td><td>6%</td><td>3%</td><td>-0.5%</td></tr>
+                <tr><td>6</td><td>2%</td><td>3%</td><td>4%</td><td>5%</td><td>2%</td><td>-0.25%</td></tr>
+                <tr><td>7</td><td>1%</td><td>2%</td><td>3%</td><td>4%</td><td>1%</td><td>-0.1%</td></tr>
+                <tr><td>8</td><td>1%</td><td>1%</td><td>2%</td><td>3%</td><td>1%</td><td>-0.05%</td></tr>
+            </table>
+            <p>与えた食べ物が「大好物」だった場合、上の表の値に <strong>1.5倍</strong> されます。「嫌いな食べ物」だった場合は <strong>0.4倍</strong> されます。例えば、難易度1でTier 4の大好物をあげた場合、25%ではなく 37.5% のボーナスになります。</p>
+
+            <h4>おおもり神社の賽銭バフとは？</h4>
+            <p>おおもり神社にお賽銭を入れた後、稀に「ともだちがたくさんできそうな気がする」というメッセージが出ることがあります。このメッセージが出た日は1日中、戦闘後に妖怪が近寄ってくる確率が全体で <strong>+1%</strong> 上昇します。</p>
+
+            <h4>判定の仕組みと優先順位 (The Decision)</h4>
+            <p>これらの確率は、最大6体の敵妖怪それぞれに対して独立して計算されます。もし2体以上の妖怪が同時に「ともだち判定」をクリアした場合、記述子の一番右の数字（元々の難易度ID）で決定されます。これまで何体仲間にしたかに関わらず、<strong>選択された中で最も元々の難易度IDが高い妖怪</strong>が仲間になります。</p>
+            <p>例：ジミーと泥田坊 (Undy) の両方が判定をクリアした場合、泥田坊の記述子(<code>0x00765444</code>)の末尾は <strong>4</strong>、ジミーは <strong>1</strong> なので、所持数に関わらず泥田坊が仲間になります。もし同点（同じ難易度ID）だった場合は、均等な確率でランダムに選ばれます。</p>
+
+            <h4>完全な計算例 (Full example)</h4>
+            <p>泥田坊1体とジミー2体を相手に戦い、あなたはまだ誰も仲間にしていません。<br>
+            基本確率は、泥田坊が 1:64 (約1.6%)、ジミーがそれぞれ 1:8 (12.5%) です。<br>
+            泥田坊にTier4の大好物をあげると： 1.6% + (1.5 × 7%) = 1.6% + 10.5% = 12.1% になります。<br>
+            さらに泥田坊をつつくと： 12.1% + 10% = 22.1% になります。<br>
+            そしてハート1つの青いさすらい玉が出た場合、全員の確率が+10%されます。<br>
+            ・ジミーの確率： 12.5% + 10% = 22.5%<br>
+            ・泥田坊の確率： 22.1% + 10% = 32.1%<br>
+            </p>
+            <p>戦闘が終了すると、それぞれの妖怪に対して判定が行われます。泥田坊をゲットできる確率は、彼の方が優先度が高い（難易度IDが高い）ため、単純に計算通りの <strong>32.1%</strong> となります。<br>
+            しかし、この戦闘でジミーを仲間にできる確率を計算する場合は少し複雑です。「泥田坊の判定が失敗し、かつジミーのどちらか（または両方）が成功する確率」を計算する必要があります。</p>
+            <p>
+            P(泥田坊) = 0.321<br>
+            P(ジミー1) = 0.225<br>
+            P(ジミー2) = 0.225<br>
+            最終確率 = (1 - 0.321) × (0.225 + 0.225 - (0.225 × 0.225))<br>
+            = 0.679 × 0.399375 ≈ 0.271<br>
+            結果として、ジミーが仲間になる実質的な確率は <strong>27.1%</strong> となります。
+            </p>
+
+            <h4>その他の重要な仕様 (Other important notes)</h4>
+            <ul>
+                <li>基本的に、特定の妖怪は仲間にすればするほど次を仲間にするのが難しくなります。</li>
+                <li>すでに同じ妖怪を <strong>6体</strong> 持っている場合、戦闘後に仲間にすることは絶対に不可能です。</li>
+                <li>状況によっては、Tier 1の大好物をあげるよりも、Tier 4の普通の食べ物（好物ではない）をあげた方がボーナスが高くなることがあります。</li>
+                <li>ハート3つの「金のさすらい玉」が出た場合、敵の中で最も元々の難易度IDが高い妖怪が100%確定で仲間になります。</li>
+                <li>同じ妖怪が複数同時に出現した場合、それぞれに個別に食べ物をあげて、個別につつくことで、全体のトータル入手確率を引き上げることができます。</li>
+            </ul>
+
+            <h4>内部データ (Modding opportunities)</h4>
+            <p>ともだちボーナスの設定値はすべて <code>chara param file</code> に保存されています。値は実際のパーセンテージの100倍（1000 ＝ 10%）で記録されています。ただし基本確率(BaseChance)だけは例外で、逆数（8 ＝ 1/8 ＝ 12.5%）として保存されています。</p>
+            <p>また、特殊なビットフラグが2つ存在します：<br>
+            <code>0x0CC4EC4E</code>: 常にともだち確率 0%（絶対仲間にならない）<br>
+            <code>0xABCB4EE6</code>: 常にともだち確率 100%（絶対仲間になる）</p>
+        </div>
+    </details>
+
+</div>
+
+<script>
+// CSVから変換した全妖怪データ（難易度IDの配列）
+const ykData = {
+  "ぶようじん坊": [1, 3, 3, 4, 5, 6], "がらあきん坊": [4, 4, 4, 5, 6, 7], "さきがけの助": [5, 5, 5, 5, 6, 7], "ダラケ刀": [3, 3, 4, 5, 6, 6], "ザンバラ刀": [4, 4, 4, 5, 6, 7], "ダララだんびら": [5, 5, 5, 5, 6, 7], "かたづ家来": [2, 4, 4, 5, 6, 6], "アライ魔将": [5, 6, 6, 6, 7, 7], "獅子まる": [3, 5, 5, 6, 7, 7], "万尾獅子": [5, 6, 7, 7, 8, 8],
+  "おこ武者": [2, 4, 5, 6, 7, 7], "くしゃ武者": [7, 7, 7, 7, 8, 8], "なまはげ": [8, 8, 8, 8, 8, 8], "ちからモチ": [1, 3, 3, 4, 5, 6], "やきモチ": [3, 3, 3, 4, 5, 6], "あかなめ": [2, 4, 4, 5, 5, 6], "おにぎり侍": [4, 6, 6, 7, 8, 8], "焼きおに斬り": [6, 7, 7, 8, 8, 8], "カブトさん": [5, 5, 6, 6, 7, 8], "ゲンマ将軍": [7, 7, 7, 7, 7, 8],
+  "黄泉ゲンスイ": [7, 7, 7, 7, 8, 8], "泥田坊": [4, 5, 5, 6, 6, 6], "ブリー隊長": [1, 2, 3, 4, 5, 6], "メラメライオン": [3, 3, 4, 5, 6, 7], "グラグライオン": [4, 4, 4, 5, 6, 7], "とどろき獅子": [5, 5, 5, 6, 7, 8], "しょうブシ": [4, 4, 5, 5, 6, 7], "まさむね": [6, 6, 6, 6, 7, 8], "むらまさ": [5, 5, 5, 6, 7, 8], "くさなぎ": [7, 7, 7, 7, 8, 8],
+  "ベンケイ": [5, 6, 7, 7, 7, 7], "からくりベンケイ": [6, 7, 7, 7, 7, 7], "やまと": [3, 3, 4, 5, 6, 7], "カブキ猿": [5, 5, 5, 6, 7, 8], "クワノ武士": [4, 4, 4, 5, 6, 7], "クワガ大将": [6, 6, 6, 6, 7, 8], "オオクワノ神": [7, 7, 7, 7, 8, 8], "鬼食い": [7, 7, 7, 8, 8, 8], "いのちとり": [7, 7, 8, 8, 8, 8], "さかさっ傘": [4, 5, 5, 6, 6, 6],
+  "化け草履": [2, 4, 6, 6, 6, 7], "ズルズルづる": [1, 3, 3, 4, 5, 6], "かぜカモ": [3, 3, 4, 4, 5, 6], "つづかな僧": [1, 3, 3, 4, 4, 5], "やめたい師": [2, 3, 3, 4, 5, 6], "もうせん和尚": [5, 5, 5, 5, 6, 7], "わすれん帽": [1, 3, 3, 4, 5, 6], "メゾン・ドワスレ": [5, 5, 6, 6, 6, 7], "ばか頭巾": [4, 4, 4, 5, 5, 6], "のっぺら坊": [2, 5, 5, 6, 6, 7],
+  "わらえ姉": [2, 3, 4, 4, 5, 6], "青くちびる": [3, 4, 4, 5, 6, 7], "バクロ婆": [3, 4, 4, 4, 5, 6], "ババァーン": [4, 4, 4, 5, 6, 7], "ドクロ婆": [4, 4, 5, 5, 6, 6], "モテモ天": [2, 3, 3, 4, 5, 6], "モテマクール": [5, 5, 6, 6, 7, 7], "モテヌス": [6, 6, 6, 6, 7, 7], "一旦ゴメン": [4, 5, 5, 5, 6, 6], "あやまり倒し": [6, 7, 7, 7, 8, 8],
+  "こえんら": [4, 5, 6, 7, 7, 7], "えんらえんら": [6, 7, 7, 8, 8, 8], "でんぱく小僧": [2, 3, 3, 4, 5, 6], "でんじん": [5, 5, 5, 6, 7, 7], "はつでんしん": [6, 6, 6, 6, 7, 8], "おでんじん": [6, 6, 7, 7, 8, 8], "U.S.O.": [4, 5, 5, 6, 6, 6], "アペリカン": [4, 5, 5, 5, 6, 7], "うんがい鏡": [4, 4, 4, 5, 6, 7], "うんがい三面鏡": [6, 7, 7, 7, 8, 8],
+  "ヤミ鏡": [5, 5, 6, 6, 7, 8], "まぼ老師": [2, 3, 3, 4, 5, 6], "かげ老師": [3, 3, 4, 4, 5, 6], "ほう老師": [4, 4, 4, 5, 6, 7], "さとりちゃん": [3, 4, 4, 5, 6, 7], "よつめ": [4, 4, 4, 5, 6, 7], "セバスチャン": [3, 4, 6, 6, 7, 7], "天狗": [6, 6, 6, 7, 7, 8], "ほむら天狗": [7, 7, 7, 7, 7, 8], "キュウビ": [6, 8, 8, 8, 8, 8],
+  "犬神": [7, 7, 7, 7, 7, 8], "ぬえ": [7, 7, 8, 8, 8, 8], "風魔猿": [7, 8, 8, 8, 8, 8], "ドキ土器": [3, 4, 5, 6, 7, 8], "だるだるま": [1, 3, 3, 4, 5, 6], "だるまっちょ": [4, 4, 5, 5, 6, 7], "ゴリだるま": [5, 5, 5, 5, 6, 7], "うらや飯": [3, 6, 6, 7, 7, 7], "プライ丼": [5, 7, 7, 7, 8, 8], "迷い車": [3, 6, 6, 7, 7, 7],
+  "だっせんしゃ": [5, 7, 7, 7, 8, 8], "ムリカベ": [3, 4, 4, 5, 6, 7], "むりだ城": [6, 6, 7, 7, 7, 8], "シロカベ": [7, 7, 7, 7, 7, 8], "グレるりん": [2, 3, 5, 6, 6, 6], "ゴクドー": [4, 5, 5, 5, 6, 7], "アニ鬼": [5, 5, 5, 6, 7, 8], "ヨロイさん": [5, 6, 6, 6, 7, 8], "モノマネキン": [5, 5, 6, 6, 7, 7], "トオセンボン": [3, 4, 4, 5, 6, 7],
+  "くろがねセンボン": [4, 4, 5, 5, 6, 7], "モレゾウ": [2, 3, 4, 4, 5, 6], "プルファント": [3, 4, 4, 5, 5, 6], "ガマンモス": [6, 7, 7, 7, 7, 8], "雷蔵": [4, 6, 6, 6, 7, 7], "ヒライ神": [6, 7, 7, 7, 7, 8], "あせっか鬼": [5, 5, 6, 6, 7, 7], "ふじのやま": [3, 4, 4, 5, 6, 7], "さくらのじま": [4, 4, 4, 5, 6, 7], "ドウカク": [4, 5, 5, 6, 6, 7],
+  "ギンカク": [5, 5, 6, 6, 7, 7], "キンカク": [6, 6, 7, 7, 7, 8], "プラチナカク": [7, 7, 7, 7, 7, 8], "武者かぶと": [4, 4, 5, 5, 6, 7], "かぶと無双": [6, 6, 7, 7, 7, 8], "オオツノノ神": [7, 7, 7, 7, 7, 8], "ロボニャン": [6, 7, 7, 7, 7, 8], "ゴルニャン": [7, 8, 8, 8, 8, 8], "だいだらぼっち": [6, 6, 7, 7, 7, 8], "うみぼうず": [6, 7, 7, 7, 7, 8],
+  "大ガマ": [7, 7, 8, 8, 8, 8], "大やもり": [7, 8, 8, 8, 8, 8], "びきゃく": [4, 5, 5, 6, 7, 7], "しゃれこ婦人": [2, 4, 4, 4, 5, 6], "カラカラさん": [4, 5, 5, 6, 7, 8], "ほね美人": [5, 5, 6, 6, 6, 7], "セミまる": [2, 3, 4, 5, 5, 6], "カゲまる": [4, 4, 5, 5, 6, 7], "ヒグラシまる": [5, 5, 6, 6, 6, 7], "さむガリ": [3, 4, 5, 5, 6, 6],
+  "ガリ王子": [6, 6, 6, 7, 7, 8], "あつガルル": [7, 7, 7, 7, 7, 8], "つらがわり": [3, 4, 5, 6, 6, 6], "一つ目小僧": [2, 5, 5, 6, 6, 7], "ジバニャン": [4, 5, 6, 6, 6, 7], "トゲニャン": [5, 6, 6, 6, 7, 8], "ワルニャン": [6, 6, 6, 7, 7, 8], "ブチニャン": [6, 6, 7, 7, 7, 8], "ノガッパ": [4, 5, 5, 6, 6, 7], "たびガッパ": [5, 6, 6, 7, 7, 8],
+  "なみガッパ": [6, 6, 7, 7, 7, 8], "コマさん": [4, 5, 6, 6, 6, 7], "ししコマ": [6, 6, 6, 7, 7, 8], "コマじろう": [3, 4, 5, 6, 6, 7], "とらじろう": [5, 6, 6, 6, 7, 8], "バク": [4, 4, 5, 5, 6, 6], "おバク様": [6, 7, 7, 7, 7, 8], "ハク": [5, 5, 5, 5, 6, 7], "雨女": [5, 6, 7, 8, 8, 8], "ばくそく": [6, 7, 7, 7, 8, 8],
+  "キュン太郎": [2, 4, 4, 5, 5, 6], "ズキュキュン太": [5, 5, 6, 6, 7, 8], "裏キュン太": [6, 6, 6, 7, 7, 8], "ケマモン": [6, 6, 6, 6, 7, 7], "ゆきおんな": [5, 5, 5, 5, 6, 7], "ふぶき姫": [6, 6, 6, 7, 7, 8], "百鬼姫": [7, 7, 7, 7, 7, 8], "河童": [6, 6, 7, 7, 8, 8], "水虎": [7, 8, 8, 8, 8, 8], "マスターニャーダ": [7, 8, 8, 8, 8, 8],
+  "うらやましろう": [1, 3, 4, 5, 6, 6], "つまみぐいのすけ": [2, 4, 5, 6, 6, 7], "ワカメくん": [1, 4, 5, 5, 6, 6], "ワカメ☆スター": [5, 5, 6, 6, 7, 7], "コンブさん": [1, 3, 4, 5, 5, 6], "メカブちゃん": [1, 5, 5, 6, 6, 7], "ひも爺": [1, 3, 4, 4, 5, 6], "くいい爺": [4, 5, 5, 6, 6, 7], "こめ爺": [5, 5, 6, 6, 6, 7], "キズナメコ": [4, 5, 6, 6, 7, 8],
+  "キズナース": [6, 6, 7, 7, 8, 8], "砂夫": [1, 5, 5, 6, 7, 7], "大山砂夫": [5, 6, 7, 7, 8, 8], "から傘お化け": [3, 5, 5, 6, 7, 7], "から傘魔人": [6, 7, 7, 7, 8, 8], "びんボーイ": [1, 3, 4, 5, 5, 6], "お金ナイダー": [5, 6, 7, 7, 8, 8], "らくてん童": [2, 4, 5, 5, 6, 6], "ざしきわらし": [3, 5, 6, 7, 7, 7], "ざしきわら神": [6, 6, 6, 7, 7, 7],
+  "ぜっこう蝶": [3, 5, 6, 6, 7, 8], "ゼッコウ蝶": [3, 6, 6, 6, 7, 8], "サイコウ蝶": [7, 7, 7, 7, 7, 8], "アゲアゲハ": [7, 8, 8, 8, 8, 8], "くだん": [4, 5, 6, 7, 8, 8], "大くだん": [7, 7, 8, 8, 8, 8], "どんちゃん": [5, 5, 6, 6, 6, 7], "晴れ男": [5, 5, 6, 6, 7, 7], "ホノボーノ": [3, 4, 5, 5, 6, 7], "ヒョウヘンヌ": [5, 5, 6, 6, 7, 8],
+  "ヒョウヘンナ": [6, 6, 6, 7, 7, 8], "サンタク老師": [5, 5, 5, 6, 7, 8], "ふくろじじい": [4, 4, 4, 5, 6, 7], "さいの目入道": [5, 5, 6, 6, 7, 8], "ゾロ目大明神": [6, 6, 6, 7, 7, 8], "雷オトン": [5, 6, 6, 6, 7, 8], "絶オジイ": [6, 6, 6, 7, 7, 8], "聖オカン": [6, 6, 6, 7, 7, 8], "心オバア": [7, 7, 7, 7, 7, 8], "麒麟": [7, 8, 8, 8, 8, 8],
+  "イッカク": [7, 8, 8, 8, 8, 8], "みちび鬼": [2, 3, 4, 5, 5, 6], "えこひい鬼": [3, 4, 5, 5, 6, 6], "かたのり小僧": [1, 3, 5, 5, 6, 6], "かたのり親方": [4, 4, 5, 6, 6, 7], "ぎっくり男": [5, 5, 6, 6, 6, 7], "TETSUYA": [3, 6, 7, 7, 7, 8], "KANTETSU": [6, 7, 7, 8, 8, 8], "草くいおとこ": [3, 6, 7, 7, 7, 8], "肉くいおとこ": [6, 7, 7, 8, 8, 8],
+  "ネガティブーン": [1, 3, 4, 5, 5, 6], "ジャネガブーン": [4, 5, 5, 5, 6, 7], "かゆかゆ": [5, 5, 5, 6, 7, 8], "ジミー": [2, 4, 5, 5, 6, 7], "カゲロー": [4, 4, 5, 6, 6, 7], "カイム": [5, 5, 6, 6, 7, 8], "ぎしんあん鬼": [3, 4, 5, 5, 6, 6], "ガ鬼": [1, 3, 4, 4, 5, 6], "あまのじゃく": [4, 5, 5, 6, 6, 7], "ヒキコウモリ": [2, 4, 4, 5, 5, 6],
+  "トジコウモリ": [5, 5, 6, 6, 7, 8], "ヤドコウモリ": [6, 6, 6, 7, 7, 8], "かりパックン": [3, 4, 6, 7, 7, 7], "泥ボックン": [5, 7, 7, 7, 7, 8], "まてんし": [3, 5, 5, 6, 6, 7], "ひとまか仙人": [4, 5, 6, 6, 7, 7], "りもこんかくし": [3, 6, 6, 7, 7, 8], "ジコチュウ": [4, 5, 5, 6, 6, 7], "ネクラマテング": [3, 4, 4, 5, 5, 6], "ヨミテング": [4, 5, 5, 6, 6, 7],
+  "リー夫人": [5, 5, 6, 6, 7, 8], "ミツマタノヅチ": [6, 7, 7, 7, 8, 8], "ガブニャン": [5, 5, 6, 7, 7, 8], "魔ガサス": [5, 5, 5, 6, 7, 8], "ウ魔": [6, 6, 6, 6, 7, 8], "デビビル": [3, 4, 5, 5, 5, 6], "デビビラン": [5, 5, 5, 6, 7, 8], "虫歯伯爵": [6, 6, 7, 7, 7, 8], "百々目鬼": [7, 7, 7, 7, 8, 8], "きらめ鬼": [7, 8, 8, 8, 8, 8],
+  "ドケチング": [6, 6, 6, 7, 7, 8], "ヤミまろ": [6, 7, 7, 7, 7, 8], "どんどろ": [7, 7, 7, 8, 8, 8], "イガイガグリ": [1, 3, 3, 4, 5, 6], "チクチクウニ": [2, 3, 4, 4, 5, 6], "じめりんぼう": [1, 3, 4, 4, 5, 6], "雨ふらし": [4, 4, 5, 5, 6, 7], "こおりんぼう": [2, 4, 4, 5, 6, 6], "化けあられ": [5, 5, 6, 6, 7, 7], "たらりん": [4, 5, 5, 6, 6, 7],
+  "ヨコドリ": [1, 3, 4, 5, 6, 6], "ぶんぶん鳥": [5, 5, 6, 6, 7, 8], "はらおドリ": [2, 4, 4, 5, 6, 7], "おともらし": [1, 4, 5, 6, 6, 7], "爆音ならし": [5, 5, 6, 6, 6, 7], "トホホギス": [1, 3, 4, 4, 5, 6], "ブカッコウ": [3, 4, 4, 5, 6, 7], "死神鳥": [5, 5, 5, 6, 6, 7], "じんめん犬": [1, 4, 5, 5, 6, 6], "かおベロス": [4, 4, 5, 5, 6, 7],
+  "三途の犬": [5, 5, 6, 6, 7, 8], "けうけげん": [3, 6, 7, 7, 8, 8], "ふさふさん": [6, 6, 6, 7, 7, 8], "認MEN": [1, 3, 5, 6, 7, 8], "ドンヨリーヌ": [3, 4, 6, 6, 7, 7], "口だけおんな": [2, 3, 5, 5, 6, 7], "おつぼね様": [3, 4, 5, 6, 7, 7], "じがじぃさん": [4, 5, 5, 6, 6, 7], "のらりくらり": [3, 5, 6, 6, 7, 7], "おならず者": [1, 3, 4, 5, 6, 6],
+  "へこ鬼神": [5, 5, 6, 6, 7, 7], "花子さん": [4, 5, 6, 6, 7, 8], "呪野花子": [6, 7, 7, 8, 8, 8], "のぼせトンマン": [6, 7, 7, 7, 8, 8], "おすべり様": [5, 5, 6, 6, 7, 7], "おしっしょう": [6, 6, 6, 7, 7, 7], "しわくちゃん": [5, 5, 6, 6, 7, 8], "老いらん": [6, 6, 6, 7, 7, 8], "ふじみ御前": [7, 7, 7, 7, 7, 8], "フゥミン": [5, 6, 7, 7, 7, 8],
+  "おねむの精": [6, 7, 7, 7, 7, 8], "土蜘蛛": [7, 8, 8, 8, 8, 8], "女郎蜘蛛": [7, 8, 8, 8, 8, 8], "ねちがえる": [2, 4, 4, 5, 5, 6], "ツチノコ": [5, 6, 6, 6, 6, 7], "フクリュウ": [6, 6, 6, 7, 7, 7], "ツチノコパンダ": [4, 5, 6, 6, 7, 7], "からみぞん": [3, 4, 6, 6, 7, 7], "こんがらギャル": [6, 6, 7, 7, 7, 8], "笑ウツボ": [2, 3, 4, 5, 6, 6],
+  "歌ウナギ": [3, 4, 5, 6, 6, 7], "大蛇のツボ": [4, 4, 5, 6, 7, 7], "キライギョ": [2, 3, 4, 4, 5, 6], "ゾウオ": [4, 4, 5, 5, 6, 7], "ギャクジョウオ": [5, 5, 6, 6, 6, 7], "おもいだスッポン": [1, 4, 6, 6, 7, 7], "おもいだ神": [6, 6, 6, 7, 7, 8], "ムカムカデ": [3, 5, 6, 7, 8, 8], "激ドラゴン": [6, 6, 7, 7, 8, 8], "りゅーくん": [4, 4, 5, 5, 6, 7],
+  "龍神": [6, 6, 7, 7, 7, 8], "青龍": [7, 7, 7, 7, 7, 8], "にんぎょ": [4, 6, 7, 7, 8, 8], "八百比丘尼": [7, 7, 8, 8, 8, 8], "イザナミ": [7, 8, 8, 8, 8, 8], "ろくろ首": [4, 5, 5, 5, 6, 6], "ボー坊": [5, 5, 6, 6, 7, 7], "しどろもどろ": [4, 5, 6, 6, 7, 7], "ミチクサメ": [2, 3, 4, 5, 5, 6], "トーシロザメ": [3, 4, 5, 5, 6, 7],
+  "ムダヅカイ": [1, 3, 4, 5, 5, 6], "はらわシェル": [4, 4, 4, 5, 6, 6], "ナガバナ": [3, 4, 4, 5, 6, 7], "ナガバナナ": [5, 5, 6, 6, 7, 8], "ホリュウ": [5, 6, 6, 6, 7, 7], "つられたろう丸": [6, 7, 7, 7, 8, 8], "しきるん蛇": [3, 4, 4, 5, 6, 7], "すねスネーク": [4, 5, 5, 5, 6, 7], "まむし行司": [5, 6, 6, 7, 7, 8], "オロチ": [6, 8, 8, 8, 8, 8],
+  "影オロチ": [7, 7, 7, 7, 7, 8], "サファイニャン": [5, 6, 6, 6, 7, 8], "エメラルニャン": [5, 6, 6, 6, 7, 8], "ルビーニャン": [5, 6, 6, 6, 7, 8], "トパニャン": [5, 6, 6, 6, 7, 8], "ダイヤニャン": [5, 6, 6, 6, 7, 8], "メロンニャン": [5, 6, 6, 6, 7, 7], "ミカンニャン": [5, 6, 6, 6, 7, 7], "キウイニャン": [5, 6, 6, 6, 7, 7], "ブドウニャン": [5, 6, 6, 6, 7, 7],
+  "イチゴニャン": [5, 6, 6, 6, 7, 7], "スイカニャン": [5, 6, 6, 6, 7, 7], "ロボガッパ": [5, 6, 7, 7, 8, 8], "ロボコマ": [5, 6, 7, 7, 8, 8], "ロボG": [5, 6, 7, 7, 8, 8], "ロボメン犬": [5, 6, 7, 7, 8, 8], "ロボノコ": [5, 6, 7, 7, 8, 8], "ロボりゅーくん": [5, 6, 7, 7, 8, 8], "ワンダーニャン": [5, 6, 6, 6, 7, 8], "ロボニャンF型": [5, 6, 6, 6, 7, 8],
+  "セーラーニャン": [5, 6, 6, 6, 7, 8], "マスクドニャーン": [5, 6, 6, 6, 7, 8], "フユニャン": [6, 7, 8, 8, 8, 8], "ダークニャン": [7, 7, 8, 8, 8, 8], "ジバコマ": [5, 6, 6, 6, 7, 8], "ジェットニャン": [5, 6, 6, 6, 7, 8], "厄怪": [7, 7, 8, 8, 8, 8], "不怪": [7, 7, 8, 8, 8, 8], "豪怪": [7, 7, 8, 8, 8, 8], "難怪": [7, 7, 8, 8, 8, 8],
+  "破怪": [7, 7, 8, 8, 8, 8], "ジンギスギスカン": [4, 6, 6, 7, 7, 8], "チンギスギスハン": [6, 7, 7, 7, 8, 8], "寝ブタ": [4, 6, 6, 7, 7, 8], "ねぶた": [6, 7, 7, 7, 8, 8], "江戸っ子パンダ": [4, 6, 6, 7, 7, 8], "大江戸忍者パンダ": [6, 7, 7, 7, 8, 8], "ひつま武士": [4, 6, 6, 7, 7, 8], "ひまつ武士": [6, 7, 7, 7, 8, 8], "たこやっ鬼": [4, 6, 6, 7, 7, 8],
+  "たこや鬼神": [6, 7, 7, 7, 8, 8], "砂ン丘入道": [4, 6, 6, 7, 7, 8], "ノー砂ン丘入道": [6, 7, 7, 7, 8, 8], "すもうどん": [4, 6, 6, 7, 7, 8], "横綱うどん": [6, 7, 7, 7, 8, 8], "あっそう山": [4, 6, 6, 7, 7, 8], "あそっ火山": [6, 7, 7, 7, 8, 8], "ウキウキビ": [4, 6, 6, 7, 7, 8], "トキメキビ": [6, 7, 7, 7, 8, 8], "ハナホ人": [3, 4, 5, 6, 7, 7],
+  "妖怪ガッツK": [5, 6, 6, 7, 8, 8], "妖怪ガッツF": [5, 6, 6, 7, 8, 8], "ジバニャンS": [7, 8, 8, 8, 8, 8], "コマさんS": [7, 8, 8, 8, 8, 8], "コマじろうS": [7, 8, 8, 8, 8, 8], "ヤミキュウビ": [7, 8, 8, 8, 8, 8], "ヒカリオロチ": [7, 8, 8, 8, 8, 8], "赤鬼": [7, 8, 8, 8, 8, 8], "青鬼": [7, 8, 8, 8, 8, 8], "黒鬼": [7, 8, 8, 8, 8, 8]
+};
+
+let dataList = document.createElement("datalist");
+dataList.id = "yks";
+for (let yk in ykData) {
+    let option = document.createElement("option");
+    option.value = yk;
+    dataList.append(option);
+}
+document.body.append(dataList);
+
+const foodBonus = [
+  [0, 10, 15, 20, 25],
+  [0, 5, 8, 11, 14],
+  [0, 4, 6, 8, 10],
+  [0, 4, 5, 6, 7],
+  [0, 3, 4, 5, 6],
+  [0, 2, 3, 4, 5],
+  [0, 1, 2, 3, 4],
+  [0, 1, 1, 2, 3]
+];
+const popularityBonus = [10, 5, 4, 4, 3, 2, 1, 1];
+const unpopularityBonus = [10, 4.5, 2, 1, 0.5, 0.25, 0.1, 0.05];
+const whispBonus = [0, 10, 100];
+const pokeBonus = 10;
+const shrineBonus = 1;
+
+function getFoodFactor(id) {
+    let favFood = document.getElementById("fav_food_" + id).checked;
+    let hateFood = document.getElementById("hat_food_" + id).checked;
+    if (favFood) return 1.5;
+    if (hateFood) return 0.4;
+    return 1;
+}
+
+function calcChance(id) {
+    let ykName = document.getElementById("yk_name_" + id).value.trim();
+    if (ykName === "") return null;
+
+    let ykCount = parseInt(document.getElementById("yk_count_" + id).value);
+    
+    if (isNaN(ykCount) || !(ykName in ykData)) {
+        return { error: `「${ykName}」は存在しないか、入力が不正です。` };
+    }
+    if (ykCount > 5) {
+        return { name: ykName, baseId: ykData[ykName][0], chance: 0 };
+    }
+
+    let befriendId = ykData[ykName][ykCount];
+    if (befriendId < 1 || befriendId > 8) {
+        return { name: ykName, baseId: ykData[ykName][0], chance: 0 };
+    }
+
+    // さすらい玉の判定
+    let whisp = 0;
+    if (document.getElementById("whisp_gold").checked) whisp = 2;
+    else if (document.getElementById("whisp_blue").checked) whisp = 1;
+
+    let food = parseInt(document.getElementById("food_tier_" + id).value);
+    let foodFactor = getFoodFactor(id);
+    let superstar = document.getElementById("pop").checked;
+    let unpop = document.getElementById("unpop").checked;
+    let poke = document.getElementById("poke_" + id).checked;
+    let shrine = document.getElementById("shrine").checked;
+
+    let chance = (1 / (2 ** (befriendId + 2))) * 100;
+
+    chance += whispBonus[whisp];
+    chance += foodBonus[befriendId - 1][food] * foodFactor;
+    chance += superstar ? popularityBonus[befriendId - 1] : 0;
+    chance -= unpop ? unpopularityBonus[befriendId - 1] : 0;
+    chance += poke ? pokeBonus : 0;
+    chance += shrine ? shrineBonus : 0;
+
+    return { 
+        name: ykName, 
+        baseId: ykData[ykName][0],
+        chance: chance / 100 
+    };
+}
+
+function calculate() {
+    let errorMsgBox = document.getElementById("error_msg");
+    errorMsgBox.innerHTML = "";
+    
+    let list = [];
+    for (let i = 1; i <= 3; i++) {
+        let data = calcChance(i);
+        if (data && data.error) {
+            errorMsgBox.innerHTML += data.error + "<br>";
+        } else if (data && data.chance >= 0) {
+            list.push([data.name, data.baseId, data.chance]);
+        }
+    }
+
+    if (list.length === 0 && errorMsgBox.innerHTML === "") {
+        errorMsgBox.innerHTML = "妖怪名を入力すると、自動的に計算結果がここに表示されます。";
+        document.getElementById("result").innerHTML = "";
+        return;
+    }
+
+    if (list.length > 0) {
+        setProbabilities(calculateEachChance(list));
+    } else {
+        document.getElementById("result").innerHTML = "";
+    }
+}
+
+function calculateEachChance(list) {
+    let result = {};
+    list.forEach((data) => {
+        if (!(data[0] in result)) result[data[0]] = 0;
+        if (data[2] > 1) data[2] = 1; 
+    });
+
+    for (let mask = 0; mask < (1 << list.length); mask++) {
+        let prob = 1;
+        let active = [];
+
+        for (let i = 0; i < list.length; i++) {
+            const occurs = (mask & (1 << i)) !== 0;
+            if (occurs) {
+                prob *= list[i][2];
+                active.push(list[i]);
+            } else {
+                prob *= 1 - list[i][2];
+            }
+        }
+
+        if (prob === 0 || active.length === 0) continue;
+
+        let maxValue = Math.max(...active.map(e => e[1]));
+        let winners = active.filter(e => e[1] === maxValue);
+        let share = prob / winners.length;
+        
+        winners.forEach(w => {
+            result[w[0]] += share * 100;
+        });
+    }
+    return result;
+}
+
+function setProbabilities(dict) {
+    let result = document.getElementById("result");
+    result.innerHTML = "";
+    let sum = 0;
+    
+    for (let key in dict) {
+        let c = dict[key];
+        sum += c;
+        let li = document.createElement("li");
+        li.innerHTML = `<strong>${key}</strong> がともだちになる確率: <strong style="color:#ffdd88;">${c.toFixed(2)}%</strong>`;
+        result.append(li);
+    }
+    
+    let li = document.createElement("li");
+    li.style.borderLeftColor = "#888";
+    li.innerHTML = `誰もともだちにならない確率: <strong>${(100 - sum).toFixed(2)}%</strong>`;
+    result.append(li);
+}
+
+// ページ読み込み完了時に入力欄の変更を監視して自動計算する
+document.addEventListener("DOMContentLoaded", () => {
+    const inputs = document.querySelectorAll("#app-container input, #app-container select");
+    inputs.forEach(input => {
+        input.addEventListener("input", calculate);
+        input.addEventListener("change", calculate);
+    });
+    calculate(); // 初期化時に一度計算
+});
+</script>
+</body>
+</html>
