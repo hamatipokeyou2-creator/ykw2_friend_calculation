@@ -176,10 +176,10 @@
 
 <div class="container" id="app-container">
     <h1>妖怪ウォッチ ともだち確率計算ツール</h1>
+    <p>これはswopis氏が作成したツールを日本語版にしたものです。</p>
     
     <p style="text-align: center; font-size: 1.05em; color: #bbb; margin-top: -10px; margin-bottom: 25px;">
-        これはswopis氏が作成したツールを日本語版にしたものです。<br>
-        <a href="https://github.com/swopis/YW-Befriend-Calculator" target="_blank" style="color: #aaccff; text-decoration: underline;">詳細（オリジナル版）はこちら</a>
+
     </p>
 
     <div class="global-buffs">
@@ -210,10 +210,10 @@
                 <label>与える食べ物:</label>
                 <select id="food_tier_1">
                     <option value="0">食べ物なし</option>
-                    <option value="1">Tier 1 (例：うめおにぎり)</option>
-                    <option value="2">Tier 2 (例：たかなおにぎり)</option>
-                    <option value="3">Tier 3 (例：いくらおにぎり)</option>
-                    <option value="4">Tier 4 (例：あいじょう天むす)</option>
+                    <option value="1">Tier 4 (例：うめおにぎり)</option>
+                    <option value="2">Tier 3 (例：たかなおにぎり)</option>
+                    <option value="3">Tier 2 (例：いくらおにぎり)</option>
+                    <option value="4">Tier 1 (例：あいじょう天むす)</option>
                 </select>
             </div>
             <div class="enemy-row">
@@ -237,10 +237,10 @@
                 <label>与える食べ物:</label>
                 <select id="food_tier_2">
                     <option value="0">食べ物なし</option>
-                    <option value="1">Tier 1 (例：うめおにぎり)</option>
-                    <option value="2">Tier 2 (例：たかなおにぎり)</option>
-                    <option value="3">Tier 3 (例：いくらおにぎり)</option>
-                    <option value="4">Tier 4 (例：あいじょう天むす)</option>
+                    <option value="1">Tier 4 (例：うめおにぎり)</option>
+                    <option value="2">Tier 3 (例：たかなおにぎり)</option>
+                    <option value="3">Tier 2 (例：いくらおにぎり)</option>
+                    <option value="4">Tier 1 (例：あいじょう天むす)</option>
                 </select>
             </div>
             <div class="enemy-row">
@@ -264,10 +264,10 @@
                 <label>与える食べ物:</label>
                 <select id="food_tier_3">
                     <option value="0">食べ物なし</option>
-                    <option value="1">Tier 1 (例：うめおにぎり)</option>
-                    <option value="2">Tier 2 (例：たかなおにぎり)</option>
-                    <option value="3">Tier 3 (例：いくらおにぎり)</option>
-                    <option value="4">Tier 4 (例：あいじょう天むす)</option>
+                    <option value="1">Tier 4 (例：うめおにぎり)</option>
+                    <option value="2">Tier 3 (例：たかなおにぎり)</option>
+                    <option value="3">Tier 2 (例：いくらおにぎり)</option>
+                    <option value="4">Tier 1 (例：あいじょう天むす)</option>
                 </select>
             </div>
             <div class="enemy-row">
@@ -295,6 +295,19 @@
             <strong>確率 ＝ 1 : 2<sup>(難易度ID + 2)</sup></strong></p>
             <p>例えば、難易度IDが 1 の場合、基本確率は 1 : 2<sup>3</sup> つまり 1/8 となり、<strong>12.5%</strong> になります。</p>
 
+            <h4>赤鬼・青鬼・黒鬼について</h4>
+            <p>赤鬼・青鬼・黒鬼は、このツールでは計算できません。所持数による確率は以下の通りです。</p>
+            <table>
+                <thead>
+                    <tr><th>妖怪</th><th>所持数0体</th><th>所持数1体</th><th>所持数2体以上</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>赤鬼</td><td>5%</td><td>2.5%</td><td>1.2%</td></tr>
+                    <tr><td>青鬼</td><td>5%</td><td>2.5%</td><td>1.2%</td></tr>
+                    <tr><td>黒鬼</td><td>3%</td><td>1.5%</td><td>0.8%</td></tr>
+                </tbody>
+            </table>
+
             <h4>プレイヤーの影響によるボーナス (Player influenced bonuses)</h4>
             <p>基本確率を計算した後、プレイヤーの行動によるボーナスが加算されます。</p>
             <ul>
@@ -309,7 +322,7 @@
 
             <h4>難易度IDに依存するボーナス一覧</h4>
             <table>
-                <tr><th>ID</th><th>Food Tier 1</th><th>Food Tier 2</th><th>Food Tier 3</th><th>Food Tier 4</th><th>モテモテ</th><th>モテヌス</th></tr>
+                <tr><th>ID</th><th>Food Tier 4</th><th>Food Tier 3</th><th>Food Tier 2</th><th>Food Tier 1</th><th>モテモテ</th><th>モテヌス</th></tr>
                 <tr><td>1</td><td>10%</td><td>15%</td><td>20%</td><td>25%</td><td>10%</td><td>-10%</td></tr>
                 <tr><td>2</td><td>5%</td><td>8%</td><td>11%</td><td>14%</td><td>5%</td><td>-4.5%</td></tr>
                 <tr><td>3</td><td>4%</td><td>6%</td><td>8%</td><td>10%</td><td>4%</td><td>-2%</td></tr>
@@ -407,7 +420,7 @@ const ykData = {
   "セーラーニャン": [5, 6, 6, 6, 7, 8], "マスクドニャーン": [5, 6, 6, 6, 7, 8], "フユニャン": [6, 7, 8, 8, 8, 8], "ダークニャン": [7, 7, 8, 8, 8, 8], "ジバコマ": [5, 6, 6, 6, 7, 8], "ジェットニャン": [5, 6, 6, 6, 7, 8], "厄怪": [7, 7, 8, 8, 8, 8], "不怪": [7, 7, 8, 8, 8, 8], "豪怪": [7, 7, 8, 8, 8, 8], "難怪": [7, 7, 8, 8, 8, 8],
   "破怪": [7, 7, 8, 8, 8, 8], "ジンギスギスカン": [4, 6, 6, 7, 7, 8], "チンギスギスハン": [6, 7, 7, 7, 8, 8], "寝ブタ": [4, 6, 6, 7, 7, 8], "ねぶた": [6, 7, 7, 7, 8, 8], "江戸っ子パンダ": [4, 6, 6, 7, 7, 8], "大江戸忍者パンダ": [6, 7, 7, 7, 8, 8], "ひつま武士": [4, 6, 6, 7, 7, 8], "ひまつ武士": [6, 7, 7, 7, 8, 8], "たこやっ鬼": [4, 6, 6, 7, 7, 8],
   "たこや鬼神": [6, 7, 7, 7, 8, 8], "砂ン丘入道": [4, 6, 6, 7, 7, 8], "ノー砂ン丘入道": [6, 7, 7, 7, 8, 8], "すもうどん": [4, 6, 6, 7, 7, 8], "横綱うどん": [6, 7, 7, 7, 8, 8], "あっそう山": [4, 6, 6, 7, 7, 8], "あそっ火山": [6, 7, 7, 7, 8, 8], "ウキウキビ": [4, 6, 6, 7, 7, 8], "トキメキビ": [6, 7, 7, 7, 8, 8], "ハナホ人": [3, 4, 5, 6, 7, 7],
-  "妖怪ガッツK": [5, 6, 6, 7, 8, 8], "妖怪ガッツF": [5, 6, 6, 7, 8, 8], "ジバニャンS": [7, 8, 8, 8, 8, 8], "コマさんS": [7, 8, 8, 8, 8, 8], "コマじろうS": [7, 8, 8, 8, 8, 8], "ヤミキュウビ": [7, 8, 8, 8, 8, 8], "ヒカリオロチ": [7, 8, 8, 8, 8, 8], "赤鬼": [7, 8, 8, 8, 8, 8], "青鬼": [7, 8, 8, 8, 8, 8], "黒鬼": [7, 8, 8, 8, 8, 8]
+  "妖怪ガッツK": [5, 6, 6, 7, 8, 8], "妖怪ガッツF": [5, 6, 6, 7, 8, 8], "ジバニャンS": [7, 8, 8, 8, 8, 8], "コマさんS": [7, 8, 8, 8, 8, 8], "コマじろうS": [7, 8, 8, 8, 8, 8], "ヤミキュウビ": [7, 8, 8, 8, 8, 8], "ヒカリオロチ": [7, 8, 8, 8, 8, 8]
 };
 
 let dataList = document.createElement("datalist");
